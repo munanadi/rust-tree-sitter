@@ -19,14 +19,38 @@ parser.setLanguage(Rust);
 
 // S Expressions to parse the rust code
 const Expressions = {
-  Macro: `(macro_invocation macro: (identifier)) @macroIdentifier`,
-  Use: `((use_declaration argument: (use_wildcard) )) @use`,
-  Let: `(let_declaration pattern: _ value: _) @letDeclaration`,
-  Assignment: `(assignment_expression left: _ right: _) @assignment`,
-  Functions: `(function_item (visibility_modifier) name: (identifier) parameters: _ return_type: _ body: _) @functionBlock`,
-  Attributes: `(attribute_item (meta_item (identifier) @attributeName arguments : _ @attributeArgs))@attributeItem`,
-  Modules: `(mod_item name: _) @modeItem`,
-  Structs: `(struct_item name: _ body: _) @structItem`,
+  Macro: {
+    expression: `(macro_invocation macro: (identifier)) @macroIdentifier`,
+    name: "macroIdentifier",
+  },
+  Use: {
+    expression: `((use_declaration argument: (use_wildcard) )) @use`,
+    name: "use",
+  },
+  Let: {
+    expression: `(let_declaration pattern: _ value: _) @letDeclaration`,
+    name: "letDeclaration",
+  },
+  Assignment: {
+    expression: `(assignment_expression left: _ right: _) @assignment`,
+    name: "assignment",
+  },
+  Functions: {
+    expression: `(function_item (visibility_modifier) name: (identifier) parameters: _ return_type: _ body: _) @functionBlock`,
+    name: "functionBlock",
+  },
+  Attributes: {
+    expression: `(attribute_item (meta_item (identifier) @attributeName arguments : _ @attributeArgs))@attributeItem`,
+    name: "attributeItem",
+  },
+  Modules: {
+    expression: `(mod_item name: _) @modItem`,
+    name: "modItem",
+  },
+  Structs: {
+    expression: `(struct_item name: _ body: _) @structItem`,
+    name: "structItem",
+  },
 };
 
 // Parse the rust code
@@ -37,64 +61,36 @@ const rootNode = tree.rootNode;
 
 fs.writeFileSync("./output.json", rootNode.toString());
 
-function traverseAST(node: SyntaxNode, expression: string) {
-  const attributeItems = new Query(Rust, expression);
-
-  // const rep = attributeItems.captures(node);
-  // for (let r of rep) {
-  //   console.log(r.node.text);
-
-  //   const attributeName =
-  //     r["name"] === "attributeName" ? r.node.text : null;
-  //   const attributeArgs =
-  //     r["name"] === "attributeArgs" ? r.node.text : null;
-
-  //   console.log({ attributeName, attributeArgs });
-
-  //   // break;
-  // }
-
-  const ast = capturesByName(
-    tree,
-    attributeItems,
-    "attributeItem"
+function traverseAST(
+  node: SyntaxNode,
+  expression: { expression: string; name: string }
+) {
+  const attributeItems = new Query(
+    Rust,
+    expression.expression
   );
-  console.log(ast);
+  const name = expression.name;
+
+  const captures = attributeItems.captures(rootNode);
+  const capturesFilterByName = captures.filter(
+    (x: { name: string }) => x.name == name
+  );
+
+  const grouped = capturesFilterByName.map(
+    (c: QueryCapture) => {
+      const node = c.node;
+
+      const result: any = {
+        text: node.text,
+        row: node.startPosition.row,
+        column: node.startPosition.column,
+      };
+
+      return result;
+    }
+  );
+
+  console.log(grouped);
 }
 
 traverseAST(rootNode, Expressions.Attributes);
-
-// Get the captures corresponding to a capture name
-function capturesByName(
-  tree: Tree,
-  query: Query,
-  name: string
-) {
-  return formatCaptures(
-    tree,
-    query
-      .captures(tree.rootNode)
-      .filter((x: { name: string }) => x.name == name)
-  ).map((x: any) => {
-    delete x.name;
-    return x;
-  });
-}
-
-// Given a raw list of captures, extract the row, column and text.
-function formatCaptures(
-  tree: any,
-  captures: QueryCapture[]
-) {
-  return captures.map((c: QueryCapture) => {
-    const node = c.node;
-
-    const result: any = {
-      text: node.text,
-      row: node.startPosition.row,
-      column: node.startPosition.column,
-    };
-
-    return result;
-  });
-}
