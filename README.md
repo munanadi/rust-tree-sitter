@@ -35,14 +35,18 @@ pub struct EnableFeeAmount<'info> {
 ```
 
 ```js
-const macroIdentifier = new Query(
-  Rust,
-  // Replace the below line with the one from the table below
-  `(attribute_item (meta_item (identifier) @attributeName arguments : _ @attributeArgs))@attributeItem`
-);
+// `rustFunc` is rust code.
+const tree = parser.parse(rustFunc);
 
-const rep = macroIdentifier.captures(rootNode);
-console.log(rep[0].node.text); // declare_id!("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS")
+const parser = new Parser();
+parser.setLanguage(Rust);
+
+const attributeItems = new Query(Rust, expression); // expression from the table below
+const ast = capturesByName(
+  tree,
+  attributeItems,
+  "attributeItem" // @name tagged with the expressions to group output
+);
 ```
 
 Will get us this
