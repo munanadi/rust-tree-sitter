@@ -94,3 +94,9 @@ Will get us this
 | Attributes            | `(attribute_item)@attributeItem`                                                                               |
 | Modules               | `(mod_item name: _) @modeItem`                                                                                 |
 | Structs               | `(struct_item name: _ body: _) @structItem`                                                                    |
+
+---
+
+`indentSExpr` function in `sexprParser.ts` will format the s-expression for better readability.
+
+![](./sexpr-format.png)

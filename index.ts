@@ -12,6 +12,7 @@ import {
   rustFunc,
 } from "./rustCode";
 import * as fs from "fs";
+import { indentSExpr } from "./sexprParser";
 
 // Create a new parser instance for Rust
 const parser = new Parser();
@@ -57,7 +58,13 @@ const Expressions = {
 const tree = parser.parse(rustFunc);
 const rootNode = tree.rootNode;
 
-// console.log(rootNode.toString());
+// // Example to show S-Expression formatter
+// const simpleCode: string = `fn main(){todo!()}`;
+// console.log("\nRust Code: \n", simpleCode.toString());
+// console.log(
+//   "\nS-Expresion: \n",
+//   indentSExpr(rootNode.toString())
+// );
 
 fs.writeFileSync("./output.json", rootNode.toString());
 
@@ -93,4 +100,4 @@ function traverseAST(
   console.log(grouped);
 }
 
-traverseAST(rootNode, Expressions.Attributes);
+// traverseAST(rootNode, Expressions.Attributes);
